@@ -40,8 +40,14 @@ OpusEncoderProcessor.prototype.onAudioProcess = function( e )
 var MediaHandler = function( audioProcessor )
 {
     var context = new (window.AudioContext||window.webkitAudioContext)();
-    if( !context.createScriptProcessor )
+    if( context.createJavaScriptNode ){
 	context.createScriptProcessor = context.createJavaScriptNode;
+    } else if( context.createScriptProcessor ){
+    context.createScriptProcessor = context.createScriptProcessor;
+    }
+    else {
+        throw "Web audio not supported";
+    }
 
     if( context.sampleRate < 44000 || context.SampleRate > 50000 )
     {
