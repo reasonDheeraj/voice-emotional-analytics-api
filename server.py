@@ -11,6 +11,11 @@ import scipy.io.wavfile
 sys.path.append("api")
 import Vokaturi
 from shutil import copyfile
+from confidence_prediction import test_example
+import pickle
+
+with open('Logistic_reg.pkl','rb') as f:
+    clf = pickle.load(f) 
 
 #from opus.decoder import Decoder as OpusDecoder
 #Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
@@ -20,29 +25,9 @@ print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
 
 def analyze():
     file_name = "tempFile.wav"
-    (sample_rate, samples) = scipy.io.wavfile.read(file_name)
-    buffer_length = len(samples)
-    c_buffer = Vokaturi.SampleArrayC(buffer_length)
-    if samples.ndim == 1:  # mono
-            c_buffer[:] = samples[:] / 32768.0
-    else:  # stereo
-            c_buffer[:] = 0.5*(samples[:,0]+0.0+samples[:,1]) / 32768.0
-    voice = Vokaturi.Voice (sample_rate, buffer_length)
-    voice.fill(buffer_length, c_buffer)
-    quality = Vokaturi.Quality()
-    emotionProbabilities = Vokaturi.EmotionProbabilities()
-    voice.extract(quality, emotionProbabilities)
+    test_exm = test_example(file_name,clf)
+    return test_exm[0,0], test_exm[0,1]
     
-    if quality.valid:
-            print ("Neutral: %.3f" % emotionProbabilities.neutrality)
-            print ("Happy: %.3f" % emotionProbabilities.happiness)
-            print ("Sad: %.3f" % emotionProbabilities.sadness)
-            print ("Angry: %.3f" % emotionProbabilities.anger)
-            print ("Fear: %.3f" % emotionProbabilities.fear)
-    else:
-            print ("Not enough sonorancy to determine emotions")
-    return (emotionProbabilities.neutrality,emotionProbabilities.happiness,emotionProbabilities.sadness,emotionProbabilities.anger,emotionProbabilities.fear)
-
 
 clients = {}
 class OpusDecoderWS(tornado.websocket.WebSocketHandler):
@@ -106,7 +91,7 @@ class OpusDecoderWS(tornado.websocket.WebSocketHandler):
         print('connection closed')
 
     def analyzeStream(self,data):
-        if self.count < 120:
+        if self.count < 140:
             if self.runtimeWriter is False:
                 filename = 'tempFile.wav'
                 self.wave_write1 = wave.open(filename, 'wb')
@@ -117,17 +102,19 @@ class OpusDecoderWS(tornado.websocket.WebSocketHandler):
                 print("in+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             self.wave_write1.writeframes(data)
             self.count = self.count + 1
-        elif self.count == 120:
+        elif self.count == 140:
             if self.runtimeWriter is True:
                 print("out+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                neutrality,happiness,sadness,anger,fear = analyze()
-                self.write_message({'neutral':float(neutrality),'happy':float(happiness),'sad':float(sadness),'anger':float(anger),'fear':float(fear)})
+                confident, nonconfident = analyze()
+                self.write_message({'confident':float(confident),'non-confident':float(nonconfident)})
                 self.wave_write1.close()
                 #copyfile('tempFile.wav', str(uuid.uuid4()) +'-'+ str(neutrality) + '-'+ str(happiness)+'-' + str(sadness) + '-' + str(anger) + '-'+ str(fear))
             self.count = 0
             self.runtimeWriter = False
         else:
             self.count = 0
+            
+        
         
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
