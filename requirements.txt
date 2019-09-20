@@ -5,3 +5,4 @@ pandas
 SoundFile
 pyAudioAnalysis
 librosa
+eyed3
