@@ -7,3 +7,4 @@ pyAudioAnalysis
 librosa
 eyed3
 pydub
+matplotlib
