@@ -6,3 +6,4 @@ SoundFile
 pyAudioAnalysis
 librosa
 eyed3
+pydub
