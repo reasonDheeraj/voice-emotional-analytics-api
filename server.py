@@ -18,8 +18,8 @@ with open('logistic_regression_.pkl','rb') as f:
     clf = pickle.load(f) 
 
 #from opus.decoder import Decoder as OpusDecoder
-Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
-# Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
+#Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
+Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
 print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
 
 
