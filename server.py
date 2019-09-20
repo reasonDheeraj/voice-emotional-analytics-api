@@ -13,8 +13,8 @@ import Vokaturi
 from shutil import copyfile
 
 #from opus.decoder import Decoder as OpusDecoder
-Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
-#Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
+#Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
+Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
 print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
 
 
