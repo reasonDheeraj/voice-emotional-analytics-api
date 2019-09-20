@@ -2,7 +2,7 @@ var OpusEncoderProcessor = function( wsh )
 {
     this.wsh = wsh;
     this.bufferSize = 4096; // for webaudio script processor
-    this.downSample = 2;
+    this.downSample = 1;
     this.opusFrameDur = 60; // msec
     this.opusRate = 24000;
     this.i16arr = new Int16Array( this.bufferSize / this.downSample );
@@ -39,6 +39,7 @@ OpusEncoderProcessor.prototype.onAudioProcess = function( e )
 
 var MediaHandler = function( audioProcessor )
 {
+    var mediaStreamSource, filter, compressor;
     var context = new (window.AudioContext||window.webkitAudioContext)();
     if( context.createJavaScriptNode ){
 	context.createScriptProcessor = context.createJavaScriptNode;
@@ -48,7 +49,7 @@ var MediaHandler = function( audioProcessor )
     else {
         throw "Web audio not supported"
     }
-
+    console.log("The sample rate is " + context.sampleRate);
     if( context.sampleRate < 44000 || context.SampleRate > 50000 )
     {
 	alert( "Unsupported sample rate: " + String( context.sampleRate ) );
@@ -74,6 +75,10 @@ MediaHandler.prototype.callback = function( stream )
 {
     console.log( 'starting callback' );
     this.micSource = this.context.createMediaStreamSource( stream );
+    
+    const gainNode = this.context.createGain();
+    gainNode.gain.value = 0.1; // setting it to 10%
+    gainNode.connect(this.context.destination);
     this.processor = this.context.createScriptProcessor( this.audioProcessor.bufferSize, 1, 1 );
     this.processor.onaudioprocess = this.audioProcessor.onAudioProcess.bind( this.audioProcessor );
     this.micSource.connect( this.processor );

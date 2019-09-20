@@ -1,6 +1,7 @@
 var isRecording = false, encode = false;
-var wsh = new WebSocket( 'wss://' + window.location.href.split( '/' )[2] + '/ws' );
-
+var wsh = new WebSocket( 'ws://' + window.location.href.split( '/' )[2] + '/ws' );
+var avg;
+var count;
 //Intialiazation 
 var radialObj = radialIndicator('#indicatorContainer', {
      barColor: {
@@ -119,6 +120,9 @@ function onWsMessage( msg ){
     myChart.data.datasets[0].data.push(obj.neutral*100);
     myChart.update();
     console.log(obj);
+
+    //Calculate Average Confidence
+
 }
 
 
@@ -142,7 +146,7 @@ function sendSettings()
     var rate = String( mh.context.sampleRate / ap.downSample );
     var opusRate = String( ap.opusRate );
     var opusFrameDur = String( ap.opusFrameDur )
-
+    console.log("sending Sample Rate " + rate)
     var msg = "m:" + [ rate, encode, opusRate, opusFrameDur ].join( "," );
     console.log( msg );
     wsh.send( msg );

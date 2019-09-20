@@ -14,12 +14,12 @@ from shutil import copyfile
 from confidence_prediction import test_example
 import pickle
 
-with open('Logistic_reg.pkl','rb') as f:
+with open('logistic_regression_.pkl','rb') as f:
     clf = pickle.load(f) 
 
 #from opus.decoder import Decoder as OpusDecoder
-#Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
-Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
+Vokaturi.load("api/OpenVokaturi-3-3-win64.dll")
+# Vokaturi.load("api/OpenVokaturi-3-3-linux64.so")
 print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
 
 
@@ -54,7 +54,7 @@ class OpusDecoderWS(tornado.websocket.WebSocketHandler):
         wave_write.setnchannels(1)
         wave_write.setsampwidth(2) #int16, even when not encoded
         wave_write.setframerate(rate)
-
+        print(rate)
         if self.initialized :
             self.wave_write.close()
 
@@ -91,7 +91,7 @@ class OpusDecoderWS(tornado.websocket.WebSocketHandler):
         print('connection closed')
 
     def analyzeStream(self,data):
-        if self.count < 140:
+        if self.count < 280:
             if self.runtimeWriter is False:
                 filename = 'tempFile.wav'
                 self.wave_write1 = wave.open(filename, 'wb')
@@ -102,7 +102,7 @@ class OpusDecoderWS(tornado.websocket.WebSocketHandler):
                 print("in+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             self.wave_write1.writeframes(data)
             self.count = self.count + 1
-        elif self.count == 140:
+        elif self.count == 280:
             if self.runtimeWriter is True:
                 print("out+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 confident, nonconfident = analyze()
