@@ -46,7 +46,7 @@ var MediaHandler = function( audioProcessor )
     context.createScriptProcessor = context.createScriptProcessor;
     }
     else {
-        throw "Web audio not supported";
+        throw "Web audio not supported"
     }
 
     if( context.sampleRate < 44000 || context.SampleRate > 50000 )
@@ -81,4 +81,4 @@ MediaHandler.prototype.callback = function( stream )
     console.log( 'ending callback' );
 }
 
-MediaHandler.prototype.error = function( err ) { alert( "Problem" ); }
+MediaHandler.prototype.error = function( err ) { alert( err ); }
