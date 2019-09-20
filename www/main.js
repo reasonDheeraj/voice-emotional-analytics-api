@@ -1,5 +1,5 @@
 var isRecording = false, encode = false;
-var wsh = new WebSocket( 'ws://' + window.location.href.split( '/' )[2] + '/ws' );
+var wsh = new WebSocket( 'wss://' + window.location.href.split( '/' )[2] + '/ws' );
 
 //Intialiazation 
 var radialObj = radialIndicator('#indicatorContainer', {
