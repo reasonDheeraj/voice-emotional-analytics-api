@@ -1,2 +1,7 @@
 tornado==5.0.1
 scipy
+numpy
+pandas
+pickle
+pyAudioAnalysis
+librosa
