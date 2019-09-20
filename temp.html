@@ -1,0 +1,123 @@
+<head>
+  <title>Pink Noise</title>
+</head>
+<body>
+
+<canvas id="spectrum"></canvas>
+
+<script type="text/javascript">
+
+var initAudio, microphoneError, microphoneSuccess, pinkNoise;
+
+navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+window.requestAnimationFrame = (window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame);
+
+microphoneError = function(event) {
+  console.log("error")
+  if (event.name === "PermissionDeniedError") {
+    alert("This app requires a microphone as input. Please adjust your privacy settings.");
+  }
+};
+
+microphoneSuccess = function(stream) {
+  console.log("success")
+  initAudio(stream);
+};
+
+pinkNoise = function(context) {
+  console.log("starting pink noise")
+  var b0, b1, b2, b3, b4, b5, b6, bufferSize, pinkNode;
+  bufferSize = 4096;
+  b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+  pinkNode = context.createScriptProcessor(bufferSize, 1, 1);
+  pinkNode.onaudioprocess = function(e) {
+    var i, output, white, _i, _results;
+    output = e.outputBuffer.getChannelData(0);
+    _results = [];
+    for (i = _i = 0; 0 <= bufferSize ? _i < bufferSize : _i > bufferSize; i = 0 <= bufferSize ? ++_i : --_i) {
+      white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+      output[i] *= 0.11;
+      _results.push(b6 = white * 0.115926);
+    }
+  };
+  pinkNode.connect(context.destination);
+};
+
+
+initAudio = function(stream) {
+  console.log("init audio")
+  var analyser, bufferLength, canvas, canvasElement, context, dataArray, draw, filterNode, height, sourceNode, width;
+
+  canvasElement = document.getElementById("spectrum");
+  width = 1000;
+  height = 400;
+
+  canvasElement.width = width;
+  canvasElement.height = height;
+  canvas = canvasElement.getContext("2d");
+  context = new AudioContext();
+
+  sourceNode = context.createMediaStreamSource(stream);
+
+  filterNode = context.createBiquadFilter();
+  filterNode.type = filterNode.LOWPASS;
+  filterNode.frequency.value = 4410;
+  filterNode.Q.value = 1.5;
+  filterNode.gain.value = 0;
+
+  sourceNode.connect(filterNode);
+
+  analyser = context.createAnalyser();
+  analyser.fftSize = 2048;
+
+  filterNode.connect(analyser);
+
+  bufferLength = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufferLength);
+  canvas.clearRect(0, 0, width, height);
+
+  pinkNoise(context);
+
+  draw = function() {
+    var barHeight, barWidth, drawVisual, i, x, _i, _results;
+    drawVisual = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+    canvas.fillStyle = 'rgb(0, 0, 0)';
+    canvas.fillRect(0, 0, width, height);
+    barWidth = (width / bufferLength) * 2.5;
+    x = 0;
+    _results = [];
+    for (i = _i = 0; 0 <= bufferLength ? _i < bufferLength : _i > bufferLength; i = 0 <= bufferLength ? ++_i : --_i) {
+      barHeight = dataArray[i] / 255 * height;
+      canvas.fillStyle = 'rgb(255,50,50)';
+      canvas.fillRect(x, height - barHeight, barWidth, barHeight);
+      _results.push(x += barWidth + 1);
+    }
+    _results;
+  };
+  draw();
+};
+
+window.onload = function() {
+  console.log("here")
+  if (navigator.getUserMedia) {
+    console.log("get microphone");
+    navigator.getUserMedia({
+      audio: true
+    }, microphoneSuccess, microphoneError);
+  } else {
+    alert("This app requires a microphone as input. Please try using Chrome or Firefox.");
+  }
+};
+
+</script>
+</body>
+</html>
